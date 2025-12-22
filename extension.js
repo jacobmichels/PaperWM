@@ -122,7 +122,15 @@ export default class PaperWM extends Extension {
 
         try {
             const metadata = this.dir.get_child("metadata.json");
-            metadata.copy(configDir.get_child("metadata.json"), Gio.FileCopyFlags.OVERWRITE, null, null);
+            const destMetadata = configDir.get_child("metadata.json");
+
+            try {
+                destMetadata.delete(null);
+            } catch (e) {
+                // Ignore errors (e.g., file doesn't exist)
+            }
+
+            metadata.copy(destMetadata, Gio.FileCopyFlags.OVERWRITE, null, null);
         } catch (error) {
             console.error('PaperWM', `could not update user config metadata.json: ${error}`);
         }
@@ -132,7 +140,7 @@ export default class PaperWM extends Extension {
                 const user = this.dir.get_child("config/user.css");
                 user.copy(configDir.get_child("user.css"), Gio.FileCopyFlags.NONE, null, null);
             } catch (error) {
-                console.error('PaperWM', `could not update user config metadata.json: ${error}`);
+                console.error('PaperWM', `could not update user config user.css: ${error}`);
             }
         }
     }
