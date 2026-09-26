@@ -70,6 +70,7 @@ export function enable(extension) {
         'gesture-workspace-sequential',
         'open-window-position',
         'overview-ensure-viewport-animation',
+        'use-paperwm-workspace-animation',
         'overview-min-windows-per-row',
         'overview-max-window-scale',
         'minimap-shade-opacity',
