@@ -27,6 +27,7 @@ export function enable(extension) {
     });
     actions.forEach(enableAction);
     Settings.overrideConflicts();
+    setWorkspaceNHandlers(perMonitorWorkspaceSwitcher);
 
     let schemas = [...Settings.getConflictSettings(), extension.getSettings(KEYBINDINGS_KEY)];
     schemas.forEach(schema => {
@@ -46,12 +47,53 @@ export function disable() {
     signals = null;
     actions.forEach(disableAction);
     Settings.restoreConflicts();
+    setWorkspaceNHandlers(Main.wm._showWorkspaceSwitcher.bind(Main.wm));
 
     keybindSettings = null;
     actions = null;
     nameMap = null;
     actionIdMap = null;
     keycomboMap = null;
+}
+
+/**
+ * Sets the handler for GNOME's switch-to-workspace-N and move-to-workspace-N
+ * keybindings (same action modes GNOME uses).
+ */
+function setWorkspaceNHandlers(handler) {
+    for (let i = 1; i <= 12; i++) {
+        Main.wm.setCustomKeybindingHandler(`switch-to-workspace-${i}`,
+            Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW, handler);
+        Main.wm.setCustomKeybindingHandler(`move-to-workspace-${i}`,
+            Shell.ActionMode.NORMAL, handler);
+    }
+}
+
+/**
+ * With per-monitor-workspaces, targets the N-th workspace of the focused
+ * monitor.  Otherwise defers to GNOME's handler.
+ */
+function perMonitorWorkspaceSwitcher(display, window, event, binding) {
+    if (!Settings.prefs.per_monitor_workspaces) {
+        Main.wm._showWorkspaceSwitcher(display, window, event, binding);
+        return;
+    }
+
+    const [action, , , target] = binding.get_name().split('-');
+    if (action === 'move' && (!window || window.is_always_on_all_workspaces())) {
+        return;
+    }
+
+    const space = Tiling.spaces.monitorSpaceAt(Tiling.focusMonitor(), Number(target));
+    if (!space) {
+        return;
+    }
+
+    if (action === 'switch') {
+        Main.wm.actionMoveWorkspace(space.workspace);
+    } else {
+        Main.wm.actionMoveWindow(window, space.workspace);
+    }
 }
 
 export function registerPaperAction(actionName, handler, flags) {
