@@ -2136,6 +2136,7 @@ border-radius: ${borderWidth}px;
 
         this.layout(true, { centerIfOne: false });
         this.emit('monitor-changed');
+        Topbar.refreshWorkspaceDots();
     }
 
     /**
@@ -2528,6 +2529,7 @@ export const Spaces = class Spaces extends Map {
     setMonitors(monitor, space, save = false) {
         this.monitors.set(monitor, space);
         saveState.update(save);
+        Topbar.refreshWorkspaceDots();
     }
 
     _updateMonitor() {
@@ -2617,6 +2619,7 @@ export const Spaces = class Spaces extends Map {
             space.settings.set_int('index', workspace.index());
             Meta.prefs_change_workspace_name(workspace.index(), space.name);
         }
+        Topbar.refreshWorkspaceDots();
     }
 
     /**
@@ -2890,9 +2893,7 @@ export const Spaces = class Spaces extends Map {
      * renumber that monitor's spaces.
      */
     monitorSpaceAt(monitor, n) {
-        const own = [...this.values()]
-            .filter(s => s.monitor === monitor)
-            .sort((a, b) => a.index - b.index);
+        const own = this.monitorSpaces(monitor);
         if (n <= own.length) {
             return own[n - 1];
         }
@@ -2904,6 +2905,15 @@ export const Spaces = class Spaces extends Map {
         const space = this.spaceOf(workspace);
         space.setMonitor(monitor);
         return space;
+    }
+
+    /**
+     * Returns the spaces on `monitor`, in workspace order.
+     */
+    monitorSpaces(monitor) {
+        return [...this.values()]
+            .filter(s => s.monitor === monitor)
+            .sort((a, b) => a.index - b.index);
     }
 
     _getOrderedSpacesFromAllMonitors(monitor) {
