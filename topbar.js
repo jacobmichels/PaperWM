@@ -78,6 +78,7 @@ export function enable (extension) {
     });*/
 
     fixWorkspaceIndicator();
+    fixWorkspaceDots();
     fixFocusModeIcon();
     fixOpenPositionIcon();
     fixStyle();
@@ -109,6 +110,8 @@ export function enable (extension) {
     signals.connect(gsettings, 'changed::show-workspace-indicator', (_settings, _key) => {
         fixWorkspaceIndicator();
     });
+
+    signals.connect(gsettings, 'changed::per-monitor-workspaces', fixWorkspaceDots);
 
     signals.connect(gsettings, 'changed::show-focus-mode-icon', (_settings, _key) => {
         fixFocusModeIcon();
@@ -147,6 +150,7 @@ export function disable() {
     activeOpenWindowPositions = null;
     menu.destroy();
     menu = null;
+    useOwnWorkspaceDots(false);
     Main.panel.statusArea.activities.show();
     // remove PaperWM style classes names for Main.panel
     removeStyles();
@@ -968,6 +972,95 @@ export function fixWorkspaceIndicator() {
     else {
         menu.hide();
         Main.panel.statusArea.activities.show();
+    }
+}
+
+/**
+ * GNOME's activities pill shows a dot per workspace and tracks the global
+ * active workspace.  With per-monitor-workspaces, it shows the panel monitor's
+ * spaces instead, driven by its own adjustment (GNOME's is shared with the
+ * overview and workspace animation, so it can't be repurposed).
+ */
+let dotsIndicators, gnomeDotsAdjustment, dotsAdjustment, dotsRefreshQueued;
+
+export function fixWorkspaceDots() {
+    useOwnWorkspaceDots(Settings.prefs.per_monitor_workspaces);
+}
+
+function useOwnWorkspaceDots(own) {
+    if (own === !!dotsAdjustment) {
+        return;
+    }
+
+    if (own) {
+        dotsIndicators = Main.panel.statusArea.activities.get_children()
+            .find(c => c._workspacesAdjustment);
+        if (!dotsIndicators) {
+            return;
+        }
+        gnomeDotsAdjustment = dotsIndicators._workspacesAdjustment;
+        gnomeDotsAdjustment.disconnectObject(dotsIndicators);
+        dotsAdjustment = new St.Adjustment({
+            actor: dotsIndicators,
+            lower: 0,
+            page_increment: 1,
+            page_size: 1,
+            step_increment: 0,
+        });
+        connectWorkspaceDots(dotsAdjustment);
+        updateWorkspaceDots();
+    } else {
+        dotsAdjustment.disconnectObject(dotsIndicators);
+        dotsAdjustment = null;
+        connectWorkspaceDots(gnomeDotsAdjustment);
+        dotsIndicators._recalculateDots();
+        gnomeDotsAdjustment = null;
+        dotsIndicators = null;
+    }
+}
+
+function connectWorkspaceDots(adjustment) {
+    const indicators = dotsIndicators;
+    indicators._workspacesAdjustment = adjustment;
+    adjustment.connectObject(
+        'notify::value', () => indicators._updateExpansion(),
+        'notify::upper', () => indicators._recalculateDots(),
+        indicators);
+}
+
+/**
+ * Queues a pill update.  Space and monitor bookkeeping changes in batches, so
+ * this waits until it has settled.
+ */
+export function refreshWorkspaceDots() {
+    if (!dotsAdjustment || dotsRefreshQueued) {
+        return;
+    }
+    dotsRefreshQueued = true;
+    Utils.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+        dotsRefreshQueued = false;
+        updateWorkspaceDots();
+        return false;
+    });
+}
+
+function updateWorkspaceDots() {
+    const space = panelSpace();
+    if (!dotsAdjustment || !space) {
+        return;
+    }
+
+    const own = Tiling.spaces.monitorSpaces(space.monitor);
+    const index = own.indexOf(space);
+    dotsAdjustment.remove_transition('value');
+    if (dotsAdjustment.upper !== own.length) {
+        dotsAdjustment.upper = own.length;
+        dotsAdjustment.value = index;
+    } else if (dotsAdjustment.value !== index) {
+        dotsAdjustment.ease(index, {
+            duration: Settings.prefs.animation_time * 1000,
+            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+        });
     }
 }
 

@@ -739,6 +739,12 @@
         <summary>Drift speed (px/ms) when mouse is at edge of monitor when dragging windows</summary>
     </key>
 
+    <key type="b" name="per-monitor-workspaces">
+        <default>false</default>
+        <summary>Number workspaces per monitor</summary>
+        <description>switch-to-workspace-N and move-to-workspace-N keybindings target the N-th workspace of the focused monitor</description>
+    </key>
+
     <key type="d" name="overview-max-window-scale">
         <default>0.95</default>
         <summary>Sets the maximum window scale (compared to actual window size) of Gnome overview windows</summary>

@@ -2136,6 +2136,7 @@ border-radius: ${borderWidth}px;
 
         this.layout(true, { centerIfOne: false });
         this.emit('monitor-changed');
+        Topbar.refreshWorkspaceDots();
     }
 
     /**
@@ -2528,6 +2529,7 @@ export const Spaces = class Spaces extends Map {
     setMonitors(monitor, space, save = false) {
         this.monitors.set(monitor, space);
         saveState.update(save);
+        Topbar.refreshWorkspaceDots();
     }
 
     _updateMonitor() {
@@ -2617,6 +2619,7 @@ export const Spaces = class Spaces extends Map {
             space.settings.set_int('index', workspace.index());
             Meta.prefs_change_workspace_name(workspace.index(), space.name);
         }
+        Topbar.refreshWorkspaceDots();
     }
 
     /**
@@ -2873,13 +2876,45 @@ export const Spaces = class Spaces extends Map {
 
             // include workspace if it is the current one
             // or if it is empty and not active on another monitor
+            // (per-monitor workspaces keep empty spaces on their own monitor)
             if (space.length === 0 &&
+                !Settings.prefs.per_monitor_workspaces &&
                 this.monitors.get(space.monitor) !== space) {
                 out.push(space);
                 continue;
             }
         }
         return out;
+    }
+
+    /**
+     * Returns the n-th (1-based) space on `monitor`, in workspace order. If the
+     * monitor has fewer spaces, appends a new workspace to it (with dynamic
+     * workspaces).  Never takes a space from another monitor, which would
+     * renumber that monitor's spaces.
+     */
+    monitorSpaceAt(monitor, n) {
+        const own = this.monitorSpaces(monitor);
+        if (n <= own.length) {
+            return own[n - 1];
+        }
+
+        if (!Meta.prefs_get_dynamic_workspaces()) {
+            return null;
+        }
+        const workspace = workspaceManager.append_new_workspace(false, global.get_current_time());
+        const space = this.spaceOf(workspace);
+        space.setMonitor(monitor);
+        return space;
+    }
+
+    /**
+     * Returns the spaces on `monitor`, in workspace order.
+     */
+    monitorSpaces(monitor) {
+        return [...this.values()]
+            .filter(s => s.monitor === monitor)
+            .sort((a, b) => a.index - b.index);
     }
 
     _getOrderedSpacesFromAllMonitors(monitor) {
