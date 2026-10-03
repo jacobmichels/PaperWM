@@ -16,6 +16,9 @@ const DIRECTIONS = {
 
 let vy, time, vState, navigator, direction, signals;
 let handoffToOverview = false;
+// gesture-workspace-sequential: one workspace step per swipe
+let sequential, stepped, travel;
+const SEQUENTIAL_THRESHOLD = 100;
 // 1 is natural scrolling, -1 is unnatural
 let natural = 1;
 export let gliding = false; // exported
@@ -88,6 +91,9 @@ export function enable(extension) {
             natural = touchpadSettings.get_boolean("natural-scroll") ? 1 : -1;
             direction = undefined;
             handoffToOverview = false;
+            sequential = false;
+            stepped = false;
+            travel = 0;
             navigator = Navigator.getNavigator();
             navigator.connect('destroy', () => {
                 vState = -1;
@@ -125,6 +131,15 @@ export function enable(extension) {
                 }
 
                 let dir_y = -dy * natural * Settings.prefs.swipe_sensitivity[1];
+                if (Settings.prefs.gesture_workspace_sequential &&
+                    gestureWorkspaceFingers() === fingers) {
+                    handoffToOverview = false;
+                    sequential = true;
+                    swipeTrackersEnable(false);
+                    updateSequential(dir_y);
+                    return Clutter.EVENT_STOP;
+                }
+
                 // if not Tiling.inPreview and swipe is UP => propagate event to overview
                 if (!Tiling.inPreview && dir_y > 0) {
                     // enable swipe trackers which enables 3-finger up overview
@@ -162,6 +177,12 @@ export function enable(extension) {
                     handoffToOverview = false;
                     direction = undefined;
                     return Clutter.EVENT_PROPAGATE;
+                }
+
+                if (sequential) {
+                    direction = undefined;
+                    navigator.finish();
+                    return Clutter.EVENT_STOP;
                 }
 
                 vState = phase;
@@ -559,6 +580,23 @@ export function updateVertical(dy, t) {
         Easer.removeEase(selected.actor);
         selected.actor.set_scale(s, s);
     }
+}
+
+/**
+ * Steps once through the workspace sequence (like the switch up/down
+ * workspace keybindings) when a swipe travels far enough.
+ */
+function updateSequential(dy) {
+    if (stepped) {
+        return;
+    }
+    travel += dy;
+    if (Math.abs(travel) < SEQUENTIAL_THRESHOLD) {
+        return;
+    }
+    stepped = true;
+    Tiling.spaces.selectSequenceSpace(
+        travel > 0 ? Meta.MotionDirection.DOWN : Meta.MotionDirection.UP);
 }
 
 let endVerticalTimeout;

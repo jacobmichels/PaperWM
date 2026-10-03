@@ -758,6 +758,12 @@
         <summary>Enables PaperWM touchpad gestures</summary>
     </key>
 
+    <key type="b" name="gesture-workspace-sequential">
+        <default>false</default>
+        <summary>Switch one workspace per vertical swipe, in workspace order</summary>
+        <description>Swiping either direction steps to the adjacent workspace, like the switch up/down workspace keybindings, instead of opening the recently-used workspace stack or the overview</description>
+    </key>
+
     <key type="i" name="gesture-horizontal-fingers">
         <default>3</default>
         <summary>Number of fingers for tiling horizontal swipe. 0:DISABLED 3:THREE_FINGERS 4:FOUR_FINGERS</summary>

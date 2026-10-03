@@ -67,6 +67,7 @@ export function enable(extension) {
         'gesture-enabled',
         'gesture-horizontal-fingers',
         'gesture-workspace-fingers',
+        'gesture-workspace-sequential',
         'open-window-position',
         'overview-ensure-viewport-animation',
         'overview-min-windows-per-row',
