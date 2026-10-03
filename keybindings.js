@@ -199,17 +199,23 @@ export function setupActions(settings) {
     registerNavigatorAction('move-previous-workspace', Tiling.movePreviousSpace);
     registerNavigatorAction('move-previous-workspace-backward', Tiling.movePreviousSpaceBackwards);
 
-    registerNavigatorAction('switch-down-workspace', (mw, space) => {
+    // switch on key press instead of waiting for the modifier release
+    // (finish is a no-op while the navigator holds its grab)
+    registerPaperAction('switch-down-workspace', (mw, space) => {
         Tiling.selectDownSpace(mw, space, false);
+        Navigator.getNavigator().finish();
     });
-    registerNavigatorAction('switch-up-workspace', (mw, space) => {
+    registerPaperAction('switch-up-workspace', (mw, space) => {
         Tiling.selectUpSpace(mw, space, false);
+        Navigator.getNavigator().finish();
     });
-    registerNavigatorAction('switch-down-workspace-from-all-monitors', (mw, space) => {
+    registerPaperAction('switch-down-workspace-from-all-monitors', (mw, space) => {
         Tiling.selectDownSpace(mw, space, true);
+        Navigator.getNavigator().finish();
     });
-    registerNavigatorAction('switch-up-workspace-from-all-monitors', (mw, space) => {
+    registerPaperAction('switch-up-workspace-from-all-monitors', (mw, space) => {
         Tiling.selectUpSpace(mw, space, true);
+        Navigator.getNavigator().finish();
     });
 
     registerNavigatorAction('move-down-workspace', Tiling.moveDownSpace);
