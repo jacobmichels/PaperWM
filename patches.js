@@ -612,7 +612,7 @@ export function _checkWorkspaces() {
     }
 
     // Update workspaces only if Dynamic Workspace Management has not been paused by some other function
-    if (this._pauseWorkspaceCheck || Tiling.inPreview)
+    if (this._pauseWorkspaceCheck || Tiling.inPreview || Tiling.spaces?._slidingTo)
         return true;
 
     for (i = 0; i < this._workspaces.length; i++) {
