@@ -2952,7 +2952,13 @@ export const Spaces = class Spaces extends Map {
         }
 
         this.forEach(s => s.setSpaceTopbarElementsVisible(true));
-        this._animateToSpaceOrdered(this.selectedSpace, false);
+        // Let an in-flight slide continue from where it is instead of
+        // snapping it to its end
+        if (this._slidingTo) {
+            Topbar.fixTopBar();
+        } else {
+            this._animateToSpaceOrdered(this.selectedSpace, false);
+        }
 
         let selected = this.selectedSpace.selectedWindow;
         if (selected && selected.fullscreen) {
@@ -3273,7 +3279,11 @@ export const Spaces = class Spaces extends Map {
             this._animateToSpaceOrdered(to, animate);
             let t = to.actor.get_transition('y');
             if (t) {
+                this._slidingTo = to;
                 t.connect('stopped', (timeline, finished) => {
+                    if (this._slidingTo === to) {
+                        this._slidingTo = null;
+                    }
                     if (finished) {
                         onComplete();
                     }
