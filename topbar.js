@@ -1050,7 +1050,7 @@ function updateWorkspaceDots() {
         return;
     }
 
-    const own = Tiling.spaces.monitorSpaces(space.monitor);
+    const own = Tiling.spaces._getOrderedSpaces(space.monitor);
     const index = own.indexOf(space);
     dotsAdjustment.remove_transition('value');
     if (dotsAdjustment.upper !== own.length) {

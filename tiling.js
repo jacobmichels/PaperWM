@@ -2893,9 +2893,15 @@ export const Spaces = class Spaces extends Map {
      * renumber that monitor's spaces.
      */
     monitorSpaceAt(monitor, n) {
-        const own = this.monitorSpaces(monitor);
+        const own = this._getOrderedSpaces(monitor);
         if (n <= own.length) {
             return own[n - 1];
+        }
+
+        // reuse a trailing empty space rather than creating another one
+        const last = own[own.length - 1];
+        if (last?.length === 0) {
+            return last;
         }
 
         if (!Meta.prefs_get_dynamic_workspaces()) {
@@ -2905,15 +2911,6 @@ export const Spaces = class Spaces extends Map {
         const space = this.spaceOf(workspace);
         space.setMonitor(monitor);
         return space;
-    }
-
-    /**
-     * Returns the spaces on `monitor`, in workspace order.
-     */
-    monitorSpaces(monitor) {
-        return [...this.values()]
-            .filter(s => s.monitor === monitor)
-            .sort((a, b) => a.index - b.index);
     }
 
     _getOrderedSpacesFromAllMonitors(monitor) {
