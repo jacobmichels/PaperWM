@@ -3013,16 +3013,6 @@ export const Spaces = class Spaces extends Map {
         let newSpace = this.selectedSpace;
         let to = from;
 
-        if (move && this.selectedSpace.selectedWindow) {
-            const navigator = Navigator.getNavigator();
-            if (!navigator._moving ||
-                (Array.isArray(navigator._moving) && navigator._moving.length === 0)) {
-                takeWindow(this.selectedSpace.selectedWindow,
-                    this.selectedSpace,
-                    { navigator });
-            }
-        }
-
         if (direction === Meta.MotionDirection.DOWN) {
             to = from + 1;
         }
@@ -3032,6 +3022,16 @@ export const Spaces = class Spaces extends Map {
 
         if (to < 0 || to >= monitorSpaces.length) {
             return;
+        }
+
+        if (move && this.selectedSpace.selectedWindow) {
+            const navigator = Navigator.getNavigator();
+            if (!navigator._moving ||
+                (Array.isArray(navigator._moving) && navigator._moving.length === 0)) {
+                takeWindow(this.selectedSpace.selectedWindow,
+                    this.selectedSpace,
+                    { navigator });
+            }
         }
 
         if (to === from && Easer.isEasing(newSpace.actor)) {
