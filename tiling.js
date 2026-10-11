@@ -2086,6 +2086,10 @@ border-radius: ${borderWidth}px;
             return;
         }
 
+        // set before remaking the background, which sizes its crossfade by these
+        this.width = monitor.width;
+        this.height = monitor.height;
+
         // Remake the background when we move monitors. The size/scale will be
         // incorrect when using fractional scaling.
         if (monitor !== this.monitor) {
@@ -2102,9 +2106,6 @@ border-radius: ${borderWidth}px;
 
         let background = this.background;
         let clip = this.clip;
-
-        this.width = monitor.width;
-        this.height = monitor.height;
 
         let time = animate ? Settings.prefs.animation_time : 0;
 
