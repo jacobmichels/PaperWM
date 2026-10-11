@@ -2024,7 +2024,8 @@ border-radius: ${borderWidth}px;
 
         this.signals.connect(this.background, 'button-press-event',
             (_actor, _event) => {
-                if (inGrab) {
+                // ignore clicks on the outgoing space during a workspace slide
+                if (inGrab || (!Navigator.navigating && spaces._slidingTo)) {
                     return;
                 }
 
@@ -2045,6 +2046,9 @@ border-radius: ${borderWidth}px;
         // ensure this space is active if touched
         this.signals.connect(this.background, 'touch-event',
             (_actor, _event) => {
+                if (!Navigator.navigating && spaces._slidingTo) {
+                    return;
+                }
                 this.activateWithFocus(this.selectedWindow, false, false);
             });
 
