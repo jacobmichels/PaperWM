@@ -3230,13 +3230,9 @@ export const Spaces = class Spaces extends Map {
         inPreview = PreviewMode.NONE;
 
         Topbar.updateWorkspaceIndicator(to.index);
-        if (to.hasTopBar) {
-            if (to.showPositionBar) {
-                Topbar.setNoBackgroundStyle();
-            } else {
-                Topbar.setTransparentStyle();
-            }
-        }
+        // restore the primary top bar style (the preview may have changed
+        // it) even when `to` is on another monitor
+        Topbar.fixStyle();
 
         this.selectedSpace = to;
         to.show();
