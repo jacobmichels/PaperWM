@@ -3084,7 +3084,9 @@ export const Spaces = class Spaces extends Map {
         monitorSpaces.forEach((space, i) => {
             // need to set monitor here so it shows up during selection, when it
             // was previously on another monitor
-            space.setMonitor(currentSpace.monitor, false, { commit: false });
+            if (space.monitor !== currentSpace.monitor) {
+                space.setMonitor(currentSpace.monitor, false, { commit: false });
+            }
 
             let padding = (space.height * scale / 100) * padding_percentage;
             let center = (space.height - (space.height * scale)) / 2;

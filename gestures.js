@@ -133,9 +133,11 @@ export function enable(extension) {
                 let dir_y = -dy * natural * Settings.prefs.swipe_sensitivity[1];
                 if (Settings.prefs.gesture_workspace_sequential &&
                     gestureWorkspaceFingers() === fingers) {
-                    handoffToOverview = false;
-                    sequential = true;
-                    swipeTrackersEnable(false);
+                    if (!sequential) {
+                        handoffToOverview = false;
+                        sequential = true;
+                        swipeTrackersEnable(false);
+                    }
                     updateSequential(dir_y);
                     return Clutter.EVENT_STOP;
                 }
@@ -181,7 +183,10 @@ export function enable(extension) {
 
                 if (sequential) {
                     direction = undefined;
-                    navigator.finish();
+                    // nothing changed: keep focus, e.g. on a scratch window
+                    if (!stepped) {
+                        Navigator.finishNavigation(false, false);
+                    }
                     return Clutter.EVENT_STOP;
                 }
 
@@ -587,16 +592,21 @@ export function updateVertical(dy, t) {
  * workspace keybindings) when a swipe travels far enough.
  */
 function updateSequential(dy) {
-    if (stepped) {
+    if (Math.abs(travel) >= SEQUENTIAL_THRESHOLD) {
         return;
     }
     travel += dy;
     if (Math.abs(travel) < SEQUENTIAL_THRESHOLD) {
         return;
     }
-    stepped = true;
+    const from = Tiling.spaces.selectedSpace;
     Tiling.spaces.selectSequenceSpace(
         travel > 0 ? Meta.MotionDirection.DOWN : Meta.MotionDirection.UP);
+    // commit now so the preview and switch run as one animation
+    stepped = Tiling.spaces.selectedSpace !== from;
+    if (stepped) {
+        Navigator.getNavigator().finish();
+    }
 }
 
 let endVerticalTimeout;

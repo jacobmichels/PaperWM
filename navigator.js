@@ -382,16 +382,16 @@ class NavigatorClass {
         this.was_accepted = true;
     }
 
-    finish(force = false) {
+    finish(force = false, refocus = true) {
         if (!force && grab) {
             return;
         }
 
         this.accept();
-        this.destroy();
+        this.destroy(refocus);
     }
 
-    destroy() {
+    destroy(refocus = true) {
         // A stale caller (e.g. a gesture END after a key press already
         // finished this navigator) must not re-run activation or reset a
         // newer navigator
@@ -467,7 +467,7 @@ class NavigatorClass {
             selected = curFocus;
         }
 
-        if (selected && !Tiling.inGrab) {
+        if (refocus && selected && !Tiling.inGrab) {
             let hasFocus = selected && selected.has_focus();
             selected.foreach_transient(mw => {
                 hasFocus = mw.has_focus() || hasFocus;
@@ -509,9 +509,9 @@ export function getNavigator() {
  * Finishes navigation if navigator exists.
  * Useful to call before disabling other modules.
  */
-export function finishNavigation(force = true) {
+export function finishNavigation(force = true, refocus = true) {
     if (navigator) {
-        navigator.finish(force);
+        navigator.finish(force, refocus);
     }
 }
 
