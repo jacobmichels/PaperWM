@@ -392,6 +392,13 @@ class NavigatorClass {
     }
 
     destroy() {
+        // A stale caller (e.g. a gesture END after a key press already
+        // finished this navigator) must not re-run activation or reset a
+        // newer navigator
+        if (navigator !== this) {
+            return;
+        }
+
         this.minimaps.forEach(m => {
             if (typeof  m === 'number') {
                 Utils.timeout_remove(m);
