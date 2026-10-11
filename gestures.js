@@ -183,8 +183,9 @@ export function enable(extension) {
 
                 if (sequential) {
                     direction = undefined;
+                    // nothing changed: keep focus, e.g. on a scratch window
                     if (!stepped) {
-                        Navigator.finishNavigation(false);
+                        Navigator.finishNavigation(false, false);
                     }
                     return Clutter.EVENT_STOP;
                 }
