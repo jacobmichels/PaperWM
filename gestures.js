@@ -181,7 +181,9 @@ export function enable(extension) {
 
                 if (sequential) {
                     direction = undefined;
-                    navigator.finish();
+                    if (!stepped) {
+                        Navigator.finishNavigation(false);
+                    }
                     return Clutter.EVENT_STOP;
                 }
 
@@ -587,16 +589,21 @@ export function updateVertical(dy, t) {
  * workspace keybindings) when a swipe travels far enough.
  */
 function updateSequential(dy) {
-    if (stepped) {
+    if (Math.abs(travel) >= SEQUENTIAL_THRESHOLD) {
         return;
     }
     travel += dy;
     if (Math.abs(travel) < SEQUENTIAL_THRESHOLD) {
         return;
     }
-    stepped = true;
+    const from = Tiling.spaces.selectedSpace;
     Tiling.spaces.selectSequenceSpace(
         travel > 0 ? Meta.MotionDirection.DOWN : Meta.MotionDirection.UP);
+    // commit now so the preview and switch run as one animation
+    stepped = Tiling.spaces.selectedSpace !== from;
+    if (stepped) {
+        Navigator.getNavigator().finish();
+    }
 }
 
 let endVerticalTimeout;
