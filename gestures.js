@@ -133,9 +133,11 @@ export function enable(extension) {
                 let dir_y = -dy * natural * Settings.prefs.swipe_sensitivity[1];
                 if (Settings.prefs.gesture_workspace_sequential &&
                     gestureWorkspaceFingers() === fingers) {
-                    handoffToOverview = false;
-                    sequential = true;
-                    swipeTrackersEnable(false);
+                    if (!sequential) {
+                        handoffToOverview = false;
+                        sequential = true;
+                        swipeTrackersEnable(false);
+                    }
                     updateSequential(dir_y);
                     return Clutter.EVENT_STOP;
                 }
