@@ -2936,7 +2936,15 @@ export const Spaces = class Spaces extends Map {
 
             let selected = space.selectedWindow;
             if (selected && selected.fullscreen && space !== toSpace) {
-                selected.clone.y = Main.panel.height + Settings.prefs.vertical_margin;
+                const y = Main.panel.height + Settings.prefs.vertical_margin;
+                if (animate) {
+                    Easer.addEase(selected.clone, {
+                        y,
+                        time: Settings.prefs.animation_time,
+                    });
+                } else {
+                    selected.clone.y = y;
+                }
             }
         });
     }
