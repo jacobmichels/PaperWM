@@ -73,26 +73,36 @@ function setWorkspaceNHandlers(handler) {
  * With per-monitor-workspaces, targets the N-th workspace of the focused
  * monitor.  Otherwise defers to GNOME's handler.
  */
-function perMonitorWorkspaceSwitcher(display, window, event, binding) {
-    if (!Settings.prefs.per_monitor_workspaces) {
-        Main.wm._showWorkspaceSwitcher(display, window, event, binding);
+function perMonitorWorkspaceSwitcher(...args) {
+    if (Navigator.navigating) {
         return;
     }
 
+    if (!Settings.prefs.per_monitor_workspaces) {
+        Main.wm._showWorkspaceSwitcher(...args);
+        return;
+    }
+
+    // GNOME 48+ passes (display, window, event, binding), older (display, window, binding)
+    const window = args[1];
+    const binding = args.at(-1);
     const [action, , , target] = binding.get_name().split('-');
     if (action === 'move' && (!window || window.is_always_on_all_workspaces())) {
         return;
     }
 
     const space = Tiling.spaces.monitorSpaceAt(Tiling.focusMonitor(), Number(target));
-    if (!space) {
+    if (!space || space.workspace.active) {
         return;
     }
 
+    // switch like switchMonitor does: GNOME's own switch animation covers
+    // every monitor
     if (action === 'switch') {
-        Main.wm.actionMoveWorkspace(space.workspace);
+        space.activate(false, true);
     } else {
-        Main.wm.actionMoveWindow(window, space.workspace);
+        window.change_workspace(space.workspace);
+        space.activateWithFocus(window, false, true);
     }
 }
 

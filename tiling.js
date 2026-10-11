@@ -2090,11 +2090,16 @@ border-radius: ${borderWidth}px;
             return;
         }
 
+        // set before remaking the background, which sizes its crossfade by these
+        this.width = monitor.width;
+        this.height = monitor.height;
+
         // Remake the background when we move monitors. The size/scale will be
         // incorrect when using fractional scaling.
         if (monitor !== this.monitor) {
             if (commit) {
                 this.monitor = monitor;
+                Topbar.refreshWorkspaceDots();
             }
             this.createBackground();
             this.updateColor();
@@ -2106,9 +2111,6 @@ border-radius: ${borderWidth}px;
 
         let background = this.background;
         let clip = this.clip;
-
-        this.width = monitor.width;
-        this.height = monitor.height;
 
         let time = animate ? Settings.prefs.animation_time : 0;
 
@@ -2140,7 +2142,6 @@ border-radius: ${borderWidth}px;
 
         this.layout(true, { centerIfOne: false });
         this.emit('monitor-changed');
-        Topbar.refreshWorkspaceDots();
     }
 
     /**
@@ -2899,9 +2900,15 @@ export const Spaces = class Spaces extends Map {
      * renumber that monitor's spaces.
      */
     monitorSpaceAt(monitor, n) {
-        const own = this.monitorSpaces(monitor);
+        const own = this._getOrderedSpaces(monitor);
         if (n <= own.length) {
             return own[n - 1];
+        }
+
+        // reuse a trailing empty space rather than creating another one
+        const last = own[own.length - 1];
+        if (last?.length === 0) {
+            return last;
         }
 
         if (!Meta.prefs_get_dynamic_workspaces()) {
@@ -2911,15 +2918,6 @@ export const Spaces = class Spaces extends Map {
         const space = this.spaceOf(workspace);
         space.setMonitor(monitor);
         return space;
-    }
-
-    /**
-     * Returns the spaces on `monitor`, in workspace order.
-     */
-    monitorSpaces(monitor) {
-        return [...this.values()]
-            .filter(s => s.monitor === monitor)
-            .sort((a, b) => a.index - b.index);
     }
 
     _getOrderedSpacesFromAllMonitors(monitor) {
@@ -3036,16 +3034,6 @@ export const Spaces = class Spaces extends Map {
         let newSpace = this.selectedSpace;
         let to = from;
 
-        if (move && this.selectedSpace.selectedWindow) {
-            const navigator = Navigator.getNavigator();
-            if (!navigator._moving ||
-                (Array.isArray(navigator._moving) && navigator._moving.length === 0)) {
-                takeWindow(this.selectedSpace.selectedWindow,
-                    this.selectedSpace,
-                    { navigator });
-            }
-        }
-
         if (direction === Meta.MotionDirection.DOWN) {
             to = from + 1;
         }
@@ -3055,6 +3043,16 @@ export const Spaces = class Spaces extends Map {
 
         if (to < 0 || to >= monitorSpaces.length) {
             return;
+        }
+
+        if (move && this.selectedSpace.selectedWindow) {
+            const navigator = Navigator.getNavigator();
+            if (!navigator._moving ||
+                (Array.isArray(navigator._moving) && navigator._moving.length === 0)) {
+                takeWindow(this.selectedSpace.selectedWindow,
+                    this.selectedSpace,
+                    { navigator });
+            }
         }
 
         if (to === from && Easer.isEasing(newSpace.actor)) {
@@ -3140,7 +3138,9 @@ export const Spaces = class Spaces extends Map {
                 space.clip.set_scale(scaleX, scaleY);
                 space.clip.set_position(monitor.x, monitor.y);
             } else {
-                space.setMonitor(monitor);
+                // per-monitor workspaces keep empty spaces on their own
+                // monitor; the navigator moves the space if it's picked
+                space.setMonitor(monitor, false, { commit: !Settings.prefs.per_monitor_workspaces });
             }
 
             Easer.removeEase(space.border);
