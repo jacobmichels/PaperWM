@@ -297,11 +297,11 @@ export class Space extends Array {
             const direction = event.get_scroll_direction();
             switch (direction) {
             case Clutter.ScrollDirection.DOWN:
-                spaces.selectSequenceSpace(Meta.MotionDirection.DOWN);
+                spaces.selectSequenceSpace(Meta.MotionDirection.DOWN, false, false, false);
                 Navigator.getNavigator().finish();
                 return Clutter.EVENT_STOP;
             case Clutter.ScrollDirection.UP:
-                spaces.selectSequenceSpace(Meta.MotionDirection.UP);
+                spaces.selectSequenceSpace(Meta.MotionDirection.UP, false, false, false);
                 Navigator.getNavigator().finish();
                 return Clutter.EVENT_STOP;
             default:

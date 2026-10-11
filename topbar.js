@@ -831,11 +831,11 @@ export const WorkspaceMenu = GObject.registerClass(
                 const direction = event.get_scroll_direction();
                 switch (direction) {
                 case Clutter.ScrollDirection.DOWN:
-                    Tiling.spaces.selectSequenceSpace(Meta.MotionDirection.DOWN);
+                    Tiling.spaces.selectSequenceSpace(Meta.MotionDirection.DOWN, false, false, false);
                     Navigator.getNavigator().finish();
                     break;
                 case Clutter.ScrollDirection.UP:
-                    Tiling.spaces.selectSequenceSpace(Meta.MotionDirection.UP);
+                    Tiling.spaces.selectSequenceSpace(Meta.MotionDirection.UP, false, false, false);
                     Navigator.getNavigator().finish();
                     break;
                 }

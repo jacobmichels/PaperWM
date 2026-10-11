@@ -601,7 +601,8 @@ function updateSequential(dy) {
     }
     const from = Tiling.spaces.selectedSpace;
     Tiling.spaces.selectSequenceSpace(
-        travel > 0 ? Meta.MotionDirection.DOWN : Meta.MotionDirection.UP);
+        travel > 0 ? Meta.MotionDirection.DOWN : Meta.MotionDirection.UP,
+        false, false, false);
     // commit now so the preview and switch run as one animation
     stepped = Tiling.spaces.selectedSpace !== from;
     if (stepped) {
