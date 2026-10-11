@@ -2095,6 +2095,7 @@ border-radius: ${borderWidth}px;
         if (monitor !== this.monitor) {
             if (commit) {
                 this.monitor = monitor;
+                Topbar.refreshWorkspaceDots();
             }
             this.createBackground();
             this.updateColor();
@@ -2137,7 +2138,6 @@ border-radius: ${borderWidth}px;
 
         this.layout(true, { centerIfOne: false });
         this.emit('monitor-changed');
-        Topbar.refreshWorkspaceDots();
     }
 
     /**

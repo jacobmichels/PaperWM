@@ -981,7 +981,7 @@ export function fixWorkspaceIndicator() {
  * spaces instead, driven by its own adjustment (GNOME's is shared with the
  * overview and workspace animation, so it can't be repurposed).
  */
-let dotsIndicators, gnomeDotsAdjustment, dotsAdjustment, dotsRefreshQueued;
+let dotsIndicators, gnomeDotsAdjustment, dotsAdjustment, dotsRefreshQueued, dotsTarget;
 
 export function fixWorkspaceDots() {
     useOwnWorkspaceDots(Settings.prefs.per_monitor_workspaces);
@@ -1052,16 +1052,18 @@ function updateWorkspaceDots() {
 
     const own = Tiling.spaces._getOrderedSpaces(space.monitor);
     const index = own.indexOf(space);
-    dotsAdjustment.remove_transition('value');
     if (dotsAdjustment.upper !== own.length) {
+        dotsAdjustment.remove_transition('value');
         dotsAdjustment.upper = own.length;
         dotsAdjustment.value = index;
-    } else if (dotsAdjustment.value !== index) {
+    } else if (dotsTarget !== index) {
+        // compare against the last target, not the mid-animation value
         dotsAdjustment.ease(index, {
             duration: Settings.prefs.animation_time * 1000,
-            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+            mode: Clutter.AnimationMode.EASE_IN_OUT_QUAD,
         });
     }
+    dotsTarget = index;
 }
 
 export function fixFocusModeIcon() {
