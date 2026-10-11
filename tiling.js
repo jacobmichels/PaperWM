@@ -2024,7 +2024,8 @@ border-radius: ${borderWidth}px;
 
         this.signals.connect(this.background, 'button-press-event',
             (_actor, _event) => {
-                if (inGrab) {
+                // ignore clicks on the outgoing space during a workspace slide
+                if (inGrab || (!Navigator.navigating && spaces._slidingTo)) {
                     return;
                 }
 
@@ -2045,6 +2046,9 @@ border-radius: ${borderWidth}px;
         // ensure this space is active if touched
         this.signals.connect(this.background, 'touch-event',
             (_actor, _event) => {
+                if (!Navigator.navigating && spaces._slidingTo) {
+                    return;
+                }
                 this.activateWithFocus(this.selectedWindow, false, false);
             });
 
@@ -2988,7 +2992,13 @@ export const Spaces = class Spaces extends Map {
         }
 
         this.forEach(s => s.setSpaceTopbarElementsVisible(true));
-        this._animateToSpaceOrdered(this.selectedSpace, false);
+        // Let an in-flight slide continue from where it is instead of
+        // snapping it to its end
+        if (this._slidingTo) {
+            Topbar.fixTopBar();
+        } else {
+            this._animateToSpaceOrdered(this.selectedSpace, false);
+        }
 
         let selected = this.selectedSpace.selectedWindow;
         if (selected && selected.fullscreen) {
@@ -3256,13 +3266,9 @@ export const Spaces = class Spaces extends Map {
         inPreview = PreviewMode.NONE;
 
         Topbar.updateWorkspaceIndicator(to.index);
-        if (to.hasTopBar) {
-            if (to.showPositionBar) {
-                Topbar.setNoBackgroundStyle();
-            } else {
-                Topbar.setTransparentStyle();
-            }
-        }
+        // restore the primary top bar style (the preview may have changed
+        // it) even when `to` is on another monitor
+        Topbar.fixStyle();
 
         this.selectedSpace = to;
         to.show();
@@ -3309,7 +3315,11 @@ export const Spaces = class Spaces extends Map {
             this._animateToSpaceOrdered(to, animate);
             let t = to.actor.get_transition('y');
             if (t) {
+                this._slidingTo = to;
                 t.connect('stopped', (timeline, finished) => {
+                    if (this._slidingTo === to) {
+                        this._slidingTo = null;
+                    }
                     if (finished) {
                         onComplete();
                     }

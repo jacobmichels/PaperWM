@@ -294,17 +294,6 @@ class NavigatorClass {
     constructor() {
         console.debug("#navigator", "nav created");
 
-        /**
-         * Hint for using take window mode (used in `takeWindow`).
-         */
-        this.takeHint = new St.Label({ style_class: 'take-window-hint' });
-        this.takeHint.clutter_text.set_markup(
-            `<i>• press <span foreground="#6be67b">spacebar</span> to return the last taken window</i>
-<i>• press <span foreground="#6be67b">tab</span> to cycle forward through taken windows</i>
-<i>• press <span foreground="#6be67b">shift+tab</span> to cycle backward through taken windows</i>
-<i>• press <span foreground="#6be67b">q</span> to close all taken windows</i>`
-        );
-
         navigating = true;
 
         this.was_accepted = false;
@@ -349,6 +338,17 @@ class NavigatorClass {
      */
     showTakeHint(show = true) {
         if (show) {
+            /**
+             * Hint for using take window mode (used in `takeWindow`).
+             */
+            this.takeHint = new St.Label({ style_class: 'take-window-hint' });
+            this.takeHint.clutter_text.set_markup(
+                `<i>• press <span foreground="#6be67b">spacebar</span> to return the last taken window</i>
+<i>• press <span foreground="#6be67b">tab</span> to cycle forward through taken windows</i>
+<i>• press <span foreground="#6be67b">shift+tab</span> to cycle backward through taken windows</i>
+<i>• press <span foreground="#6be67b">q</span> to close all taken windows</i>`
+            );
+
             // set position on stage, take into account monitor
             const monitor = this.space.monitor;
             const x = monitor.x + monitor.width - 402;
@@ -371,8 +371,8 @@ class NavigatorClass {
                 time: Settings.prefs.animation_time,
                 opacity: 0,
                 onComplete: () => {
-                    // global.stage.remove_child(this.takeHint);
-                    Utils.actor_remove_child(global.stage, this.takeHint);
+                    this.takeHint.destroy();
+                    this.takeHint = null;
                 },
             });
         }
@@ -392,6 +392,13 @@ class NavigatorClass {
     }
 
     destroy() {
+        // A stale caller (e.g. a gesture END after a key press already
+        // finished this navigator) must not re-run activation or reset a
+        // newer navigator
+        if (navigator !== this) {
+            return;
+        }
+
         this.minimaps.forEach(m => {
             if (typeof  m === 'number') {
                 Utils.timeout_remove(m);

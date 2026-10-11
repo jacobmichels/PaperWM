@@ -151,6 +151,7 @@ export function setupOverrides() {
         function (_from, _to, _direction, onComplete) {
             // ensure swipeTrackers are disabled after this
             const reset = () => {
+                Utils.timeout_remove(pillSwipeTimer);
                 // gnome windows switch animation time = 250, do that plus a little more
                 pillSwipeTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
                     swipeTrackers.forEach(t => {
@@ -613,7 +614,7 @@ export function _checkWorkspaces() {
     }
 
     // Update workspaces only if Dynamic Workspace Management has not been paused by some other function
-    if (this._pauseWorkspaceCheck || Tiling.inPreview)
+    if (this._pauseWorkspaceCheck || Tiling.inPreview || Tiling.spaces?._slidingTo)
         return true;
 
     for (i = 0; i < this._workspaces.length; i++) {
