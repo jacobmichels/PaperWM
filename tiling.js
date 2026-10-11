@@ -2971,7 +2971,7 @@ export const Spaces = class Spaces extends Map {
         }
     }
 
-    selectSequenceSpace(direction, move, fromAllMonitors = false) {
+    selectSequenceSpace(direction, move, fromAllMonitors = false, preview = true) {
         // if in stack preview do not run sequence preview
         if (inPreview === PreviewMode.STACK) {
             return;
@@ -3024,6 +3024,11 @@ export const Spaces = class Spaces extends Map {
         // if active (source space) is panelMonitor update indicator
         if (currentSpace.monitor === Topbar.panelMonitor()) {
             Topbar.updateWorkspaceIndicator(newSpace.index);
+        }
+
+        // a switch that commits right away lays out the spaces itself
+        if (!preview) {
+            return;
         }
 
         const scale = 0.825;
@@ -5503,12 +5508,12 @@ export function movePreviousSpaceBackwards(_mw, _space) {
     spaces.selectStackSpace(Meta.MotionDirection.UP, true);
 }
 
-export function selectDownSpace(mw, space, fromAllMonitors) {
-    spaces.selectSequenceSpace(Meta.MotionDirection.DOWN, false, fromAllMonitors);
+export function selectDownSpace(mw, space, fromAllMonitors, preview) {
+    spaces.selectSequenceSpace(Meta.MotionDirection.DOWN, false, fromAllMonitors, preview);
 }
 
-export function selectUpSpace(mw, space, fromAllMonitors) {
-    spaces.selectSequenceSpace(Meta.MotionDirection.UP, false, fromAllMonitors);
+export function selectUpSpace(mw, space, fromAllMonitors, preview) {
+    spaces.selectSequenceSpace(Meta.MotionDirection.UP, false, fromAllMonitors, preview);
 }
 
 export function switchDownOrElseWorkspace(mw, space) {
