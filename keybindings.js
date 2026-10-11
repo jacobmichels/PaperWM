@@ -200,23 +200,24 @@ export function setupActions(settings) {
     registerNavigatorAction('move-previous-workspace-backward', Tiling.movePreviousSpaceBackwards);
 
     // switch on key press instead of waiting for the modifier release
-    // (finish is a no-op while the navigator holds its grab)
+    // (finish is a no-op while the navigator holds its grab, so only preview
+    // when a navigator is open; otherwise the switch lays out the spaces)
     registerPaperAction('switch-down-workspace', (mw, space) => {
-        Tiling.selectDownSpace(mw, space, false);
+        Tiling.selectDownSpace(mw, space, false, Navigator.navigating);
         Navigator.getNavigator().finish();
-    });
+    }, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
     registerPaperAction('switch-up-workspace', (mw, space) => {
-        Tiling.selectUpSpace(mw, space, false);
+        Tiling.selectUpSpace(mw, space, false, Navigator.navigating);
         Navigator.getNavigator().finish();
-    });
+    }, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
     registerPaperAction('switch-down-workspace-from-all-monitors', (mw, space) => {
-        Tiling.selectDownSpace(mw, space, true);
+        Tiling.selectDownSpace(mw, space, true, Navigator.navigating);
         Navigator.getNavigator().finish();
-    });
+    }, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
     registerPaperAction('switch-up-workspace-from-all-monitors', (mw, space) => {
-        Tiling.selectUpSpace(mw, space, true);
+        Tiling.selectUpSpace(mw, space, true, Navigator.navigating);
         Navigator.getNavigator().finish();
-    });
+    }, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
 
     registerNavigatorAction('move-down-workspace', Tiling.moveDownSpace);
     registerNavigatorAction('move-up-workspace', Tiling.moveUpSpace);
