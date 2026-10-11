@@ -3110,7 +3110,9 @@ export const Spaces = class Spaces extends Map {
                 space.clip.set_scale(scaleX, scaleY);
                 space.clip.set_position(monitor.x, monitor.y);
             } else {
-                space.setMonitor(monitor);
+                // per-monitor workspaces keep empty spaces on their own
+                // monitor; the navigator moves the space if it's picked
+                space.setMonitor(monitor, false, { commit: !Settings.prefs.per_monitor_workspaces });
             }
 
             Easer.removeEase(space.border);
