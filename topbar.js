@@ -982,6 +982,7 @@ export function fixWorkspaceIndicator() {
  * overview and workspace animation, so it can't be repurposed).
  */
 let dotsIndicators, gnomeDotsAdjustment, dotsAdjustment, dotsRefreshQueued, dotsTarget;
+let dotsScrollTime = 0;
 
 export function fixWorkspaceDots() {
     useOwnWorkspaceDots(Settings.prefs.per_monitor_workspaces);
@@ -1008,8 +1009,12 @@ function useOwnWorkspaceDots(own) {
             step_increment: 0,
         });
         connectWorkspaceDots(dotsAdjustment);
+        Main.panel.statusArea.activities.connectObject(
+            'scroll-event', (_actor, event) => scrollWorkspaceDots(event),
+            dotsIndicators);
         updateWorkspaceDots();
     } else {
+        Main.panel.statusArea.activities.disconnectObject(dotsIndicators);
         dotsAdjustment.disconnectObject(dotsIndicators);
         dotsAdjustment = null;
         connectWorkspaceDots(gnomeDotsAdjustment);
@@ -1026,6 +1031,38 @@ function connectWorkspaceDots(adjustment) {
         'notify::value', () => indicators._updateExpansion(),
         'notify::upper', () => indicators._recalculateDots(),
         indicators);
+}
+
+/**
+ * Scrolling the pill steps through the panel monitor's spaces instead of
+ * GNOME's global workspaces (at most one step per 150 ms, like GNOME).
+ */
+function scrollWorkspaceDots(event) {
+    let step;
+    switch (event.get_scroll_direction()) {
+    case Clutter.ScrollDirection.UP:
+    case Clutter.ScrollDirection.LEFT:
+        step = -1;
+        break;
+    case Clutter.ScrollDirection.DOWN:
+    case Clutter.ScrollDirection.RIGHT:
+        step = 1;
+        break;
+    default:
+        return Clutter.EVENT_PROPAGATE;
+    }
+
+    if (event.get_time() - dotsScrollTime < 150) {
+        return Clutter.EVENT_STOP;
+    }
+    dotsScrollTime = event.get_time();
+
+    const space = panelSpace();
+    if (space) {
+        const own = Tiling.spaces._getOrderedSpaces(space.monitor);
+        own[own.indexOf(space) + step]?.activate(false, true);
+    }
+    return Clutter.EVENT_STOP;
 }
 
 /**
