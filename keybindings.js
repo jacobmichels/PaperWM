@@ -162,19 +162,19 @@ export function setupActions(settings) {
     registerPaperAction('switch-down-workspace', (mw, space) => {
         Tiling.selectDownSpace(mw, space, false);
         Navigator.getNavigator().finish();
-    });
+    }, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
     registerPaperAction('switch-up-workspace', (mw, space) => {
         Tiling.selectUpSpace(mw, space, false);
         Navigator.getNavigator().finish();
-    });
+    }, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
     registerPaperAction('switch-down-workspace-from-all-monitors', (mw, space) => {
         Tiling.selectDownSpace(mw, space, true);
         Navigator.getNavigator().finish();
-    });
+    }, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
     registerPaperAction('switch-up-workspace-from-all-monitors', (mw, space) => {
         Tiling.selectUpSpace(mw, space, true);
         Navigator.getNavigator().finish();
-    });
+    }, Meta.KeyBindingFlags.IGNORE_AUTOREPEAT);
 
     registerNavigatorAction('move-down-workspace', Tiling.moveDownSpace);
     registerNavigatorAction('move-up-workspace', Tiling.moveUpSpace);
